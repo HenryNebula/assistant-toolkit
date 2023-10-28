@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Custom launcher - IBM watsonx Assistant web chat toolkit</title>
+
+  <style>
+    body {
+      --accentColor: #004144;
+    }
+
+    .Launcher {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      border: none;
+      margin: 0;
+      padding: 0;
+      outline: none;
+      box-shadow: 1px 0 4px rgba(23, 23, 23, 0.3);
+      display: flex;
+      background-color: #ffffff;
+      align-items: stretch;
+      cursor: pointer;
+    }
+
+    .Launcher__Icon {
+      width: 48px;
+      height: 48px;
+      padding: 20px;
+      color: var(--accentColor);
+      border-color: transparent;
+      border-width: 1px 0 1px 1px;
+      border-style: solid;
+    }
+
+    .Launcher:focus .Launcher__Icon {
+      border-color: var(--accentColor);
+    }
+
+    .Launcher:hover .Launcher__Icon {
+      background-color: #e0e0e0;
+    }
+
+    .Launcher__TextContainer {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background-color: var(--accentColor);
+      color: #ffffff;
+      border-color: var(--accentColor);
+      border-width: 1px 1px 1px 0;
+      border-style: solid;
+    }
+
+    .Launcher:focus .Launcher__TextContainer {
+      box-shadow: inset 0 0 0 1px #ffffff;
+    }
+
+    .Launcher:hover .Launcher__TextContainer {
+      opacity: 0.8;
+    }
+
+    .Launcher__Text {
+      width: 180px;
+      padding: 16px;
+      text-align: left;
+      font-size: 16px;
+      line-height: 24px;
+    }
+
+    .InlineLauncher {
+      width: 16px;
+      height: 16px;
+      border: none;
+      margin: 0;
+      padding: 0;
+      outline: none;
+      background-color: #ffffff;
+      cursor: pointer;
+    }
+
+    table {
+      background-color: hsl(0deg, 0%, 90%);
+      border-radius: 4px;
+    }
+
+    thead {
+      outline: 2px solid hsl(0deg, 0%, 80%);
+      border-radius: 2px;
+      height: 2rem;
+    }
+
+    th {
+      padding-right: 1rem;
+      padding-left: 1rem;
+    }
+
+    td {
+      padding: 0.3rem;
+      text-align: center;
+    }
+
+    tr:hover {
+      background: gray;
+    }
+  </style>
+</head>
+<body>
+
+  <p>
+    We can not only have a launcher in the bottom right corner. We can also put a launcher in the middle of the content
+    of the main page.
+  </p>
+  <p>
+    Get help from our <a class="InlineLauncher" href="#">virtual assistant</a>.
+  </p>
+
+  <div id="table">
+    <table>
+      <thead>
+        <tr>
+          <th>Opportunity Number</th>
+          <th>Opportunity Name</th>
+          <th>Main Competitor</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Opp Number 1</td>
+          <td>Opp Name 1</td>
+          <td>
+            <a class="SwotLauncher" href="#">Accenture</a>
+          </td>
+        </tr>
+
+        <tr>
+          <td>Opp Number 2</td>
+          <td>Opp Name 2</td>
+          <td>
+            <a class="SwotLauncher" href="#">Deloitte</a>
+          </td>
+        </tr>
+        <tr>
+          <td>Opp Number 3</td>
+          <td>Opp Name 3</td>
+          <td>
+            <a class="SwotLauncher" href="#">Infosys</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- This is the main launcher that appear on the bottom right. It'll start hidden until a view change occurs. -->
+  <button class="Launcher" type="button" style="display: none">
+    <svg class="Launcher__Icon" focusable="false" preserveAspectRatio="xMidYMid meet" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" fill="currentColor">
+      <path
+          d="M17.74,30,16,29l4-7h6a2,2,0,0,0,2-2V8a2,2,0,0,0-2-2H6A2,2,0,0,0,4,8V20a2,2,0,0,0,2,2h9v2H6a4,4,0,0,1-4-4V8A4,4,0,0,1,6,4H26a4,4,0,0,1,4,4V20a4,4,0,0,1-4,4H21.16Z"></path>
+      <path d="M8 10H24V12H8zM8 16H18V18H8z"></path>
+    </svg>
+    <div class="Launcher__TextContainer">
+      <div class="Launcher__Text">Hi! I’m a virtual assistant.<br/>How can I help you?</div>
+    </div>
+  </button>
+
+  <script>
+    let webChatInstance;
+    const launcherElement = document.querySelector('.Launcher');
+    launcherElement.addEventListener('click', openMainWindow);
+
+    const inlineLauncherElement = document.querySelector('.InlineLauncher');
+    inlineLauncherElement.addEventListener('click', openMainWindow);
+
+    let competitorArray = document.querySelectorAll('.SwotLauncher');
+    for (let index = 0; index < competitorArray.length; index++) {
+      competitorArray[index].addEventListener('click', sendCompetitorLookupMessage);
+    }
+
+    /**
+     * This will be called when the user clicks the launcher button.
+     */
+    function openMainWindow() {
+      // See https://web-chat.global.assistant.watson.cloud.ibm.com/docs.html?to=api-instance-methods#changeview for
+      // more information on this function.
+      webChatInstance?.changeView('mainWindow');
+    }
+
+    function sendCompetitorLookupMessage(event) {
+      event.preventDefault();
+      openMainWindow();
+      const value = event.target.text;
+      const sendObject = {
+        input: {
+          message_type: 'text',
+          text: `'Get SWOT analysis for ${value}'`
+        }
+      };
+      const sendOptions = {
+        silent: false
+      }
+      webChatInstance?.send(sendObject, sendOptions);
+    }
+
+    /**
+     * This function is called after a view change has occurred. It will show or hide the launcher.
+     */
+    function viewChangeHandler(event) {
+      if (event.newViewState.mainWindow) {
+        launcherElement.style.display = 'none';
+      } else {
+        launcherElement.style.display = '';
+      }
+    }
+
+    /**
+     * This is the function that is called when the web chat code has been loaded and it is ready to be rendered.
+     */
+    async function onLoad(instance, initialLoad=false) {
+      // Save a reference to the web chat instance so we can use it later.
+      webChatInstance = instance;
+
+      // Add listeners so we know when web chat has been opened or closed.
+      // See https://web-chat.global.assistant.watson.cloud.ibm.com/docs.html?to=api-events#summary for more about our
+      // events.
+      instance.on({ type: 'view:change', handler: viewChangeHandler });
+
+      await instance.render();
+
+      // if (initialLoad) {
+      //   console.log('Force reload of conversational UI')
+      //   instance.restartConversation();
+      // }
+    }
+
+    // This is the standard web chat configuration object. You can modify these values with the embed code for your
+    // own assistant if you wish to try this example with your assistant. You can find the documentation for this at
+    // https://web-chat.global.assistant.watson.cloud.ibm.com/docs.html?to=api-configuration#configurationobject.
+    // window.watsonAssistantChatOptions = {
+    //   integrationID: "07b05ae0-7e2e-47d1-a309-d0f5b9915ac5",
+    //   region: "us-south",
+    //   serviceInstanceID: "9a3613d2-3ce6-4928-8eb6-4d659d87ae68",
+    //   // This is what disables the built-in launcher.
+    //   showLauncher: false,
+    //   onLoad: onLoad,
+    // };
+    // setTimeout(function(){const t=document.createElement('script');t.src="https://web-chat.global.assistant.watson.appdomain.cloud/versions/" + (window.watsonAssistantChatOptions.clientVersion || 'latest') + "/WatsonAssistantChatEntry.js";document.head.appendChild(t);});
+
+    window.watsonAssistantChatOptions = {
+      integrationID: "2a857b4c-0bfc-4b16-a7ca-190867596344", // The ID of this integration.
+      region: "us-south", // The region your integration is hosted in.
+      serviceInstanceID: "5191afaf-ab2b-4e7b-9e42-692865a95333", // The ID of your service instance.
+      onLoad: (i) => onLoad(i, true),
+      showLauncher: false,
+    };
+    setTimeout(function(){
+      const t=document.createElement('script');
+      t.src="https://web-chat.global.assistant.watson.appdomain.cloud/versions/" + (window.watsonAssistantChatOptions.clientVersion || 'latest') + "/WatsonAssistantChatEntry.js";
+      document.head.appendChild(t);
+    });
+  </script>
+
+</body>
+</html>
